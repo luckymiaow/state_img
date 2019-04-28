@@ -84,9 +84,8 @@ class img
             }
             return 1;
         }else{
-
-            return file_get_contents('json/'.$key.'.json');
-
+            if (file_exists('json/'.$key.'.json')) return file_get_contents('json/'.$key.'.json');
+                return null;
         }
 
     }
