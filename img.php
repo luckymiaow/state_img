@@ -7,7 +7,7 @@
  * @Last modified by:   luckymiaow.com
  * @Last modified time: 2019-4-26T10:29:31+08:00
  */
-
+date_default_timezone_set('Asia/Shanghai');
 $img = new img();
 $img->imgs();
 class img
@@ -15,20 +15,21 @@ class img
 
     public function imgs()
     {
+        $link='cache';
+        if(isset($_GET['link']) && $_GET['link']!=="")$link = $_GET['link'];
         $key =$_SERVER['REMOTE_ADDR'];
-        $data = json_decode($this->redis($key,'get'),true);
+        $data = json_decode($this->redis($key,'get',$link),true);
         if (empty($data)){
             $data = $this->my_scandir();
             shuffle($data);
         }
-        // return;
-        $image_file =  'img/'.$data[0];
+        $image_file = 'img/'.$data[0];
         unset($data[0]);
-        $data=array_values($data);
-        $res =  $this->redis($key,'set',json_encode($data));
+        $res =  $this->redis($key,'set',$link,json_encode(array_values($data)));
         $this->openput($image_file);
-        // $this->curl();//从网络上下载图片
+        // $this->curl();
         die;
+
     }
 
     private function  openput($url)
@@ -49,11 +50,13 @@ class img
 
     }
 
-    private function redis($key,$type='get',$content=[])
+    private function redis($key='',$type='get',$link='redis',$content=[])
     {
+        //使用文件缓存
+        if ($link=='cache')return $this->cache($key,$type,$content);
         //链接redis
         $redis = new Redis();
-        $redis->connect('127.0.0.1', 6379);
+        $conn =  $redis->connect('127.0.0.1', 6379);
         switch ($type)
         {
             case 'set';
@@ -70,6 +73,23 @@ class img
         }
     }
 
+    private function cache($key='',$type='get',$content=[])
+    {
+        if($type=='set') {
+            $data = $content;
+            $numbytes = file_put_contents('json/'.$key.'.json', $data); //如果文件不存在创建文件，并写入内容
+            if(!$numbytes){
+                echo '写入失败或者没有权限，注意检查';
+                die();
+            }
+            return 1;
+        }else{
+
+            return file_get_contents('json/'.$key.'.json');
+
+        }
+
+    }
     private function my_scandir()
     {
         //返回所有文件名
@@ -141,4 +161,5 @@ class img
         }
 
     }
+
 }
