@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>cat_img</title>
+		<!-- Bootstrap -->
+		<script src="js/jquery-2.1.4.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+
+		<style type="text/css">
+			@media screen and (min-width: 600px) {
+				.box {
+					width: 80%;
+					margin: 0 auto;
+				}
+			}
+			
+			.box_img img {
+				width: 100%;
+			}
+			
+			.pages {
+				float: left;
+				width: 100px;
+				height: 50px;
+				background: aquamarine;
+				color: #ffffff;
+				cursor: pointer;
+				margin: 20px;
+				text-align: center;
+				line-height: 50px;
+			}
+			
+			.page:after {
+				content: '';
+				clear: both;
+				display: block;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="box" id="app">
+			<div class="content">
+				<a name="xxx"></a>
+				<div class="box_img" v-for="item in list.listArr">
+					<img :src="item" alt="" />
+				</div>
+
+			</div>
+			<div class="page">
+				<a href="#xxx" @click="pages(1)">
+					<div class="get_page pages">
+						<span>上一页</span>
+					</div>
+				</a>
+				<a href="#xxx" @click="pages(2)">
+					<div class="nex_page pages">
+						<span>下一页</span>
+					</div>
+				</a>
+			</div>
+		</div>
+
+		<script type="text/javascript">
+			var app = new Vue({
+				el: '#app',
+				data: {
+					list: [],
+					page: 1
+				},
+				methods: {
+					post: function(page) { //异步请求事例
+						var _this = this;
+						var page = page;
+						$.ajax({    
+							type: "GET",
+							url: "/state_img/cat_img.php",
+							dataType: "JSON",
+							data: {
+								'page': page
+							},
+							success: function(data) {      
+								console.log(data)
+								_this.list = data
+							},
+							error: function(jqXHR) {      
+								alert("发生错误：" + JSON.stringify(jqXHR));    
+							}
+						});
+					},
+					pages: function(id) {
+						if(id == 1) {
+							var page = this.page - 1;
+							if(page < 0) page = 0;
+							this.page = page
+							this.post(page);
+						}
+						if(id == 2) {
+							var page = this.page + 1;
+							if(page > this.list.last) page = this.list.last;
+							this.page = page
+							this.post(page);
+						}
+
+					}
+
+				},
+				created: function() {
+					this.post()
+				}
+
+			})
+		</script>
+
+	</body>
+
+</html>
