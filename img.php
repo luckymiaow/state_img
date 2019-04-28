@@ -44,6 +44,10 @@ class img
         header('Content-Type:'.$mime);
         $quality = 100;
         if($imgExt == 'png') $quality = 9;        //输出质量,JPEG格式(0-100),PNG格式(0-9)
+        if (filesize($url)>30000000){
+            $quality = 60;
+            if($imgExt == 'png') $quality = 5;        //输出质量,JPEG格式(0-100),PNG格式(0-9)
+        }
         $getImgInfo = "image{$imgExt}";
         $getImgInfo($imgInfo, null, $quality);    //2.将图像输出到浏览器或文件。如: imagepng ( resource $image )
         imagedestroy($imgInfo);
@@ -96,9 +100,11 @@ class img
         while( ($filename = readdir($handler)) !== false ) {
             //3、目录下都会有两个文件，名字为’.'和‘..’，不要对他们进行操作
             if($filename != "." && $filename != ".."){
+                if (preg_match("/(gif|jpg|png)$/",$filename)) {
+                    $img_name[] = $filename;
+                }
                 //4、进行处理
                 //这里简单的用echo来输出文件名
-                $img_name[] = $filename;
             }
         }
         //5、关闭目录
