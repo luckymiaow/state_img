@@ -9,6 +9,7 @@
 		<!-- Bootstrap -->
 		<script src="js/jquery-2.1.4.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/layer/layer.js" type="text/javascript" charset="utf-8"></script>
 
 		<style type="text/css">
 			@media screen and (min-width: 600px) {
@@ -52,12 +53,12 @@
 
 			</div>
 			<div class="page">
-				<a href="#xxx" @click="pages(1)">
+				<a :href="'#xxx?page='+ (page)" @click="pages(1)">
 					<div class="get_page pages">
 						<span>上一页</span>
 					</div>
 				</a>
-				<a href="#xxx" @click="pages(2)">
+				<a :href="'#xxx?page='+ (page)" @click="pages(2)">
 					<div class="nex_page pages">
 						<span>下一页</span>
 					</div>
@@ -66,19 +67,37 @@
 		</div>
 
 		<script type="text/javascript">
+
 			var app = new Vue({
 				el: '#app',
 				data: {
 					list: [],
 					page: 1
 				},
+				watch:{
+					list:function(){
+						this.$nextTick(function(){
+							layer.closeAll();
+						});
+					}
+				},
 				methods: {
 					post: function(page) { //异步请求事例
+						layer.load(0, {shade: false});
 						var _this = this;
-						var page = page;
+						console.log('zh',page)
+						if(typeof(page) == "undefined" ){
+							var page =window.location.hash.replace(/[^0-9]/g, "")*1;
+							if(page==0){
+								page = 1;
+							}
+							_this.page = page*1;
+
+						//	console.log('ddddddd',page)
+						 }
 						$.ajax({    
 							type: "GET",
-							url: "/state_img/cat_img.php",
+							url: "/cat_img.php",
 							dataType: "JSON",
 							data: {
 								'page': page
@@ -86,9 +105,11 @@
 							success: function(data) {      
 								console.log(data)
 								_this.list = data
+
 							},
-							error: function(jqXHR) {      
-								alert("发生错误：" + JSON.stringify(jqXHR));    
+							error: function(jqXHR) {
+								layer.close(index_lay)
+								alert("发生错误：" + JSON.stringify(jqXHR));
 							}
 						});
 					},
@@ -98,12 +119,15 @@
 							if(page < 0) page = 0;
 							this.page = page
 							this.post(page);
+							return false;
 						}
 						if(id == 2) {
 							var page = this.page + 1;
 							if(page > this.list.last) page = this.list.last;
 							this.page = page
+							console.log(page)
 							this.post(page);
+							return false;
 						}
 
 					}
