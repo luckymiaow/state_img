@@ -17,7 +17,7 @@ class img
     {
         $link='cache';
         if(isset($_GET['link']) && $_GET['link']!=="")$link = $_GET['link'];
-        $key =$_SERVER['REMOTE_ADDR'];
+        $key = md5($_SERVER['REMOTE_ADDR']);
         $data = json_decode($this->redis($key,'get',$link),true);
         if (empty($data)){
             $data = $this->my_scandir();
