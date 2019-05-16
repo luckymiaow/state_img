@@ -1,4 +1,6 @@
 <?php
+header("Content-type: text/html; charset=utf-8"); 
+header('Access-Control-Allow-Origin:*');
 /**
  * @Author: luckymiaow.com
  * @Date:   2019-4-26
@@ -8,10 +10,14 @@
  * @Last modified time: 2019-4-26T10:29:31+08:00
  */
 date_default_timezone_set('Asia/Shanghai');
+
 $img = new img();
 $img->imgs();
+
 class img
 {
+
+    protected $port = 'E://st/img/'; //图库路径
 
     public function imgs()
     {
@@ -23,9 +29,16 @@ class img
             $data = $this->my_scandir();
             shuffle($data);
         }
-        $image_file = 'img/'.$data[0];
+        $image_file = $this->port.$data[0];
         unset($data[0]);
         $res =  $this->redis($key,'set',$link,json_encode(array_values($data)));
+
+        if(isset($_GET['type'])){
+            // $this->curl();
+            echo $this->base64EncodeImage($image_file);
+            die;
+        }
+
         $this->openput($image_file);
         // $this->curl();
         die;
@@ -96,7 +109,7 @@ class img
     private function my_scandir()
     {
         //返回所有文件名
-        $handler = opendir('img');
+        $handler = opendir($this->port);
         while( ($filename = readdir($handler)) !== false ) {
             //3、目录下都会有两个文件，名字为’.'和‘..’，不要对他们进行操作
             if($filename != "." && $filename != ".."){
@@ -165,6 +178,15 @@ class img
 
         }
 
+    }
+
+    private function base64EncodeImage ($image_file) 
+    {
+        $base64_image = '';
+        $image_info = getimagesize($image_file);
+        $image_data = fread(fopen($image_file, 'r'), filesize($image_file));
+        $base64_image = 'data:' . $image_info['mime'] . ';base64,' . chunk_split(base64_encode($image_data));
+        return $base64_image;
     }
 
 }
